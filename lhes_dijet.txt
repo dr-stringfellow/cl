@@ -1,0 +1,12 @@
+/eos/cms/store/user/bmaier/cl/samples/lhes/qcd/events10.lhe
+/eos/cms/store/user/bmaier/cl/samples/lhes/qcd/events11.lhe
+/eos/cms/store/user/bmaier/cl/samples/lhes/qcd/events12.lhe
+/eos/cms/store/user/bmaier/cl/samples/lhes/qcd/events1.lhe
+/eos/cms/store/user/bmaier/cl/samples/lhes/qcd/events2.lhe
+/eos/cms/store/user/bmaier/cl/samples/lhes/qcd/events3.lhe
+/eos/cms/store/user/bmaier/cl/samples/lhes/qcd/events4.lhe
+/eos/cms/store/user/bmaier/cl/samples/lhes/qcd/events5.lhe
+/eos/cms/store/user/bmaier/cl/samples/lhes/qcd/events6.lhe
+/eos/cms/store/user/bmaier/cl/samples/lhes/qcd/events7.lhe
+/eos/cms/store/user/bmaier/cl/samples/lhes/qcd/events8.lhe
+/eos/cms/store/user/bmaier/cl/samples/lhes/qcd/events9.lhe

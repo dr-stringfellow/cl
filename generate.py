@@ -9,7 +9,7 @@ lhefile = sys.argv[1]
 update = True
 for a in sys.argv:
     if 'json' in a:
-        replace = False
+        update = False
     
 nickname = sys.argv[2]
 setting = sys.argv[3]
@@ -67,8 +67,8 @@ params_dict = {'Beams:eCM' : 13000.,'Beams:frameType' : 4,'Beams:LHEF':lhefile}
 params_dict.update(common_dict)
 params_dict.update(cp5_dict)
 
-#if update:
-#    params_dict.update({key:float(value)})
+if update and nickname != "nominal":
+    params_dict.update({key:float(value)})
 
 pythia = Pythia(params=params_dict,random_state=1)
 
@@ -78,6 +78,6 @@ selection = ((STATUS == 1) & ~HAS_END_VERTEX &\
 
 ofile = lhefile.split("/")[-1].replace('.lhe','_%s.hepmc'%nickname)
 # generate events while writing to ascii hepmc
-for event in hepmc_write(ofile, pythia(events=1000)):
+for event in hepmc_write(ofile, pythia(events=10000)):
     array1 = event.all(selection)
 

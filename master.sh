@@ -1,9 +1,12 @@
 #!/bin/bash
 echo "Ok here we go"
 
-source environ_qcd.sh
+environ=`ls environ*.sh`
 
-cat environ_qcd.sh
+
+source $environ
+
+cat $environ
 
 echo "Everything sourced"
 

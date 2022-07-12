@@ -63,12 +63,30 @@ cp5_dict = {
     'PDF:pSet':20,
 }
 
+cp5down_dict = {
+        'MultipartonInteractions:pT0Ref':1.46,
+        'MultipartonInteractions:coreRadius':0.6879,
+        'MultipartonInteractions:coreFraction':0.7253,
+        'ColourReconnection:range':4.691,
+}
+
+cp5up_dict = {
+        'MultipartonInteractions:pT0Ref':1.407,
+        'MultipartonInteractions:coreRadius':0.6671,
+        'MultipartonInteractions:coreFraction':0.4281,
+        'ColourReconnection:range':4.881,
+}
+
 params_dict = {'Beams:eCM' : 13000.,'Beams:frameType' : 4,'Beams:LHEF':lhefile}
 params_dict.update(common_dict)
 params_dict.update(cp5_dict)
 
 if update and nickname != "nominal":
     params_dict.update({key:float(value)})
+elif nickname == 'cp5up':
+    params_dict.update(cp5up_dict)
+elif nickname == 'cp5down':
+    params_dict.update(cp5down_dict)
 
 pythia = Pythia(params=params_dict,random_state=1)
 

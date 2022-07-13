@@ -1,3 +1,4 @@
+import subprocess
 import sys
 import random
 import uproot
@@ -100,7 +101,7 @@ for v in variations:
 
 for evt in range(len(parton_pt)):
 
-    print(evt)
+    #print(evt)
     if evt > 30:
         break
 
@@ -331,22 +332,78 @@ for evt in range(len(parton_pt)):
                 dump_arrays[v]['dz'].append(tmp_var_arrays[v]['dz'][0])
 
 
-        random_variation = random.randrange(len(variations))
-        print("random_variation:", variations[random_variation])
 
+rand_parton_pt = []
+rand_parton_eta = []
+rand_parton_phi = []
+rand_parton_e = []
+rand_jet_pt = []
+rand_jet_eta = []
+rand_jet_phi = []
+rand_jet_e = []
+rand_pt = []
+rand_relpt = []
+rand_eta = []
+rand_phi = []
+rand_e = []
+rand_rele = []
+rand_charge = []
+rand_pdgid = []
+rand_d0 = []
+rand_dz = []
+rand_dr = []
+rand_jettype = []
+
+for j in range(len(dump_nominal['jet_pt'])):
+    idxrv = random.randrange(len(variations))
+    rv = variations[idxrv]
+    print("random_variation:", rv)
+    rand_pt.append(dump_arrays[rv]['pt'][j])
+    rand_relpt.append(dump_arrays[rv]['relpt'][j])
+    rand_eta.append(dump_arrays[rv]['eta'][j])
+    rand_phi.append(dump_arrays[rv]['phi'][j])
+    rand_e.append(dump_arrays[rv]['e'][j])
+    rand_rele.append(dump_arrays[rv]['rele'][j])
+    rand_charge.append(dump_arrays[rv]['charge'][j])
+    rand_pdgid.append(dump_arrays[rv]['pdgid'][j])
+    rand_d0.append(dump_arrays[rv]['d0'][j])
+    rand_dz.append(dump_arrays[rv]['dz'][j])
+    rand_dr.append(dump_arrays[rv]['dr'][j])
+    rand_parton_pt.append(dump_arrays[rv]['parton_pt'][j])
+    rand_parton_eta.append(dump_arrays[rv]['parton_eta'][j])
+    rand_parton_phi.append(dump_arrays[rv]['parton_phi'][j])
+    rand_parton_e.append(dump_arrays[rv]['parton_e'][j])
+    rand_jet_pt.append(dump_arrays[rv]['jet_pt'][j])
+    rand_jet_eta.append(dump_arrays[rv]['jet_eta'][j])
+    rand_jet_phi.append(dump_arrays[rv]['jet_phi'][j])
+    rand_jet_e.append(dump_arrays[rv]['jet_e'][j])
+    rand_jettype.append(dump_arrays[rv]['jettype'][j])
+
+
+subprocess.call("rm -f %s"%sys.argv[1].replace('/flat','/skim').replace('nominal_flat.root',"random.root"),shell=True)
+with uproot.recreate(sys.argv[1].replace('/flat','/skim').replace('nominal_flat.root',"random.root")) as ofile:
+    ofile['events'] = {"pfcand": ak.zip({"pt": rand_pt, "relpt": rand_relpt, "eta": rand_eta, "phi": rand_phi, "e": rand_e, "charge": rand_charge, "pdgid": rand_pdgid, "d0": rand_d0, "dz": rand_dz, "dr": rand_dr, "rele": rand_rele}),"parton":ak.zip({"pt":rand_parton_pt,"eta":rand_parton_eta,"phi":rand_parton_phi,"e":rand_parton_e}),"jet":ak.zip({"pt":rand_jet_pt,"eta":rand_jet_eta,"phi":rand_jet_phi,"e":rand_jet_e}),'jettype':rand_jettype}
+    #ofile['events'] = {"pfcand": ak.zip({"pt": rand_pt, "relpt": rand_relpt})}
 
 #has_all_variations = True
 
+#print(complete_counter,5000)
 
-print(complete_counter,5000)
+#print(dump_nominal['pt'])
 
-print(dump_nominal['pt'])
+print(variations)
 
 for v in variations:
-    with uproot.recreate("tmp_%s.root"%v) as ofile:
+    if v == "fsrRenHi2":
+        print("Here")
+        print(dump_arrays[v]['parton_pt'])
+
+    subprocess.call("rm -f %s"%sys.argv[1].replace('/flat','/skim').replace('nominal_flat.root',"%s.root"%v),shell=True)
+    with uproot.recreate(sys.argv[1].replace('/flat','/skim').replace('nominal_flat.root',"%s.root"%v)) as ofile:
         ofile['events'] = {"pfcand": ak.zip({"pt": dump_arrays[v]['pt'], "relpt": dump_arrays[v]['relpt'], "eta": dump_arrays[v]['eta'], "phi": dump_arrays[v]['phi'], "e": dump_arrays[v]['e'], "charge": dump_arrays[v]['charge'], "pdgid": dump_arrays[v]['pdgid'], "d0": dump_arrays[v]['d0'], "dz": dump_arrays[v]['dz'], "dr": dump_arrays[v]['dr'], "rele": dump_arrays[v]['rele']}),"parton":ak.zip({"pt":dump_arrays[v]['parton_pt'],"eta":dump_arrays[v]['parton_eta'],"phi":dump_arrays[v]['parton_phi'],"e":dump_arrays[v]['parton_e']}),"jet":ak.zip({"pt":dump_arrays[v]['jet_pt'],"eta":dump_arrays[v]['jet_eta'],"phi":dump_arrays[v]['jet_phi'],"e":dump_arrays[v]['jet_e']}),'jettype':dump_arrays[v]['jettype']}
 
-with uproot.recreate("tmp.root") as ofile:
+subprocess.call("rm -f %s"%sys.argv[1].replace('/flat','/skim').replace('_flat.root','.root'),shell=True)
+with uproot.recreate(sys.argv[1].replace('/flat','/skim').replace('_flat.root','.root')) as ofile:
     ofile['events'] = {"pfcand": ak.zip({"pt": dump_nominal['pt'], "relpt": dump_nominal['relpt'], "eta": dump_nominal['eta'], "phi": dump_nominal['phi'], "e": dump_nominal['e'], "charge": dump_nominal['charge'], "pdgid": dump_nominal['pdgid'], "d0": dump_nominal['d0'], "dz": dump_nominal['dz'], "dr": dump_nominal['dr'], "rele": dump_nominal['rele']}), "parton": ak.zip({'pt':dump_nominal['parton_pt'],'eta':dump_nominal['parton_eta'],'phi':dump_nominal['parton_phi'],'e':dump_nominal['parton_e']}),"jet": ak.zip({'pt':dump_nominal['jet_pt'],'eta':dump_nominal['jet_eta'],'phi':dump_nominal['jet_phi'],'e':dump_nominal['jet_e']}),'jettype':dump_nominal['jettype']}
 
 

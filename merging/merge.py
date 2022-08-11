@@ -4,6 +4,7 @@ import random
 import uproot
 import numpy as np
 import awkward as ak
+from os import path
 
 print("#############################")
 print("#############################")
@@ -13,12 +14,16 @@ print("#############################")
 
 # read branches
 def read_branch(events,branchname):
-    return events[branchname].array(entry_stop=100000)
+    return events[branchname].array(entry_stop=1000000)
 
-file = uproot.open(sys.argv[1])
+try:
+    file = uproot.open(sys.argv[1])
+except:
+    exit(1)
 events = file['events']
 #print(events.keys())
 
+minjetpt = 450
 
 augmentations = open(sys.argv[2],'r').readlines() 
 variations = []
@@ -27,7 +32,8 @@ for line in augmentations:
     if v == 'nominal':
         continue
     variations.append(v)
-#print(variations)
+
+print(variations)
 
 parton_pt = read_branch(events,'parton_pt')
 parton_eta = read_branch(events,'parton_eta')
@@ -35,9 +41,11 @@ parton_phi = read_branch(events,'parton_phi')
 parton_e = read_branch(events,'parton_e')
 jettype = read_branch(events,'jettype')
 jet_pt = read_branch(events,'jet_pt')
-jet_eta = read_branch(events,'jet_phi')
-jet_phi = read_branch(events,'jet_eta')
+jet_eta = read_branch(events,'jet_eta')
+jet_phi = read_branch(events,'jet_phi')
 jet_e = read_branch(events,'jet_e')
+jet_msd = read_branch(events,'jet_msd')
+jet_n2 = read_branch(events,'jet_n2')
 pt = read_branch(events,'pt')
 eta = read_branch(events,'eta')
 phi = read_branch(events,'phi')
@@ -61,6 +69,8 @@ v_jet_pt = {}
 v_jet_eta = {}
 v_jet_phi = {}
 v_jet_e = {}
+v_jet_msd = {}
+v_jet_n2 = {}
 v_const_pt = {}
 v_const_eta = {}
 v_const_phi = {}
@@ -82,6 +92,8 @@ for v in variations:
     v_jet_eta[v] = read_branch(v_events[v],'jet_eta')
     v_jet_phi[v] = read_branch(v_events[v],'jet_phi')
     v_jet_e[v] = read_branch(v_events[v],'jet_e')
+    v_jet_msd[v] = read_branch(v_events[v],'jet_msd')
+    v_jet_n2[v] = read_branch(v_events[v],'jet_n2')
     v_const_pt[v] = read_branch(v_events[v],'pt')
     v_const_eta[v] = read_branch(v_events[v],'eta')
     v_const_phi[v] = read_branch(v_events[v],'phi')
@@ -101,11 +113,14 @@ for v in variations:
 
 for evt in range(len(parton_pt)):
 
-    #print(evt)
-    if evt > 30:
-        break
+    if evt % 100 == 0:
+        print(evt)
 
-    if jet_pt[evt] < 400.:
+    #print(evt)
+    #if evt > 30:
+    #    break
+
+    if jet_pt[evt] < minjetpt:
         continue
     all_checker = True
 
@@ -133,6 +148,8 @@ for evt in range(len(parton_pt)):
         v_jet_eta_tmp = np.array(v_jet_eta[v])[mask]
         v_jet_phi_tmp = np.array(v_jet_phi[v])[mask]
         v_jet_e_tmp = np.array(v_jet_e[v])[mask]
+        v_jet_msd_tmp = np.array(v_jet_msd[v])[mask]
+        v_jet_n2_tmp = np.array(v_jet_n2[v])[mask]
         v_const_pt_tmp = np.array(v_const_pt[v])[mask]
         v_const_eta_tmp = np.array(v_const_eta[v])[mask]
         v_const_phi_tmp = np.array(v_const_phi[v])[mask]
@@ -142,7 +159,7 @@ for evt in range(len(parton_pt)):
         v_const_d0_tmp = np.array(v_const_d0[v])[mask]
         v_const_dz_tmp = np.array(v_const_dz[v])[mask]
 
-        if len(v_parton_pt_tmp) != 1 or len(v_jet_pt_tmp) != 1 or v_jet_pt_tmp[0]<400.:
+        if len(v_parton_pt_tmp) != 1 or len(v_jet_pt_tmp) != 1 or v_jet_pt_tmp[0]<minjetpt:
             all_checker = False
             break            
 
@@ -155,6 +172,8 @@ for evt in range(len(parton_pt)):
         tmp_var_arrays[v]['jet_eta'] = v_jet_eta_tmp
         tmp_var_arrays[v]['jet_phi'] = v_jet_phi_tmp
         tmp_var_arrays[v]['jet_e'] = v_jet_e_tmp
+        tmp_var_arrays[v]['jet_msd'] = v_jet_msd_tmp
+        tmp_var_arrays[v]['jet_n2'] = v_jet_n2_tmp
         tmp_var_arrays[v]['pt'] = np.where(v_const_pt_tmp>0,np.log(v_const_pt_tmp),0)
         tmp_var_arrays[v]['relpt'] = np.where(v_const_pt_tmp>0,np.log(v_const_pt_tmp/v_jet_pt_tmp),0)
         tmp_var_arrays[v]['eta'] = v_const_eta_tmp-v_jet_eta_tmp
@@ -199,6 +218,10 @@ for evt in range(len(parton_pt)):
             dump_nominal['jet_phi'].append(jet_phi[evt])
             dump_nominal['jet_e'] = []
             dump_nominal['jet_e'].append(jet_e[evt])
+            dump_nominal['jet_msd'] = []
+            dump_nominal['jet_msd'].append(jet_msd[evt])
+            dump_nominal['jet_n2'] = []
+            dump_nominal['jet_n2'].append(jet_n2[evt])
             dump_nominal['pt'] = []
             tmppp = np.where(np.array(pt[evt])>0,np.log(np.array(pt[evt])),0)
             dump_nominal['pt'].append(tmppp)
@@ -243,6 +266,8 @@ for evt in range(len(parton_pt)):
             dump_nominal['jet_eta'].append(jet_eta[evt])
             dump_nominal['jet_phi'].append(jet_phi[evt])
             dump_nominal['jet_e'].append(jet_e[evt])
+            dump_nominal['jet_msd'].append(jet_msd[evt])
+            dump_nominal['jet_n2'].append(jet_n2[evt])
             tmppp = np.where(np.array(pt[evt])>0,np.log(np.array(pt[evt])),0)
             dump_nominal['pt'].append(tmppp)
             tmppp = np.where(np.array(pt[evt])>0,np.log(np.array(pt[evt])/jet_pt[evt]),0)
@@ -287,6 +312,10 @@ for evt in range(len(parton_pt)):
                 dump_arrays[v]['jet_phi'].append(tmp_var_arrays[v]['jet_phi'][0])
                 dump_arrays[v]['jet_e'] = []
                 dump_arrays[v]['jet_e'].append(tmp_var_arrays[v]['jet_e'][0])
+                dump_arrays[v]['jet_msd'] = []
+                dump_arrays[v]['jet_msd'].append(tmp_var_arrays[v]['jet_msd'][0])
+                dump_arrays[v]['jet_n2'] = []
+                dump_arrays[v]['jet_n2'].append(tmp_var_arrays[v]['jet_n2'][0])
                 dump_arrays[v]['pt'] = []
                 dump_arrays[v]['pt'].append(tmp_var_arrays[v]['pt'][0])
                 dump_arrays[v]['relpt'] = []
@@ -319,6 +348,8 @@ for evt in range(len(parton_pt)):
                 dump_arrays[v]['jet_eta'].append(tmp_var_arrays[v]['jet_eta'][0])
                 dump_arrays[v]['jet_phi'].append(tmp_var_arrays[v]['jet_phi'][0])
                 dump_arrays[v]['jet_e'].append(tmp_var_arrays[v]['jet_e'][0])
+                dump_arrays[v]['jet_msd'].append(tmp_var_arrays[v]['jet_msd'][0])
+                dump_arrays[v]['jet_n2'].append(tmp_var_arrays[v]['jet_n2'][0])
                 dump_arrays[v]['pt'].append(tmp_var_arrays[v]['pt'][0])
                 dump_arrays[v]['relpt'].append(tmp_var_arrays[v]['relpt'][0])
                 dump_arrays[v]['eta'].append(tmp_var_arrays[v]['eta'][0])
@@ -332,7 +363,6 @@ for evt in range(len(parton_pt)):
                 dump_arrays[v]['dz'].append(tmp_var_arrays[v]['dz'][0])
 
 
-
 rand_parton_pt = []
 rand_parton_eta = []
 rand_parton_phi = []
@@ -341,6 +371,8 @@ rand_jet_pt = []
 rand_jet_eta = []
 rand_jet_phi = []
 rand_jet_e = []
+rand_jet_msd = []
+rand_jet_n2 = []
 rand_pt = []
 rand_relpt = []
 rand_eta = []
@@ -353,6 +385,7 @@ rand_d0 = []
 rand_dz = []
 rand_dr = []
 rand_jettype = []
+rand_vartype = []
 
 for j in range(len(dump_nominal['jet_pt'])):
     idxrv = random.randrange(len(variations))
@@ -377,13 +410,22 @@ for j in range(len(dump_nominal['jet_pt'])):
     rand_jet_eta.append(dump_arrays[rv]['jet_eta'][j])
     rand_jet_phi.append(dump_arrays[rv]['jet_phi'][j])
     rand_jet_e.append(dump_arrays[rv]['jet_e'][j])
+    rand_jet_msd.append(dump_arrays[rv]['jet_msd'][j])
+    rand_jet_n2.append(dump_arrays[rv]['jet_n2'][j])
     rand_jettype.append(dump_arrays[rv]['jettype'][j])
+    rand_vartype.append(idxrv)
+
+
+assert (np.array(rand_parton_eta) == np.array(dump_nominal['parton_eta'])).all()
+for v in variations:
+    assert (np.array(dump_arrays[v]['parton_eta']) == np.array(dump_nominal['parton_eta'])).all()
 
 
 subprocess.call("rm -f %s"%sys.argv[1].replace('/flat','/skim').replace('nominal_flat.root',"random.root"),shell=True)
 with uproot.recreate(sys.argv[1].replace('/flat','/skim').replace('nominal_flat.root',"random.root")) as ofile:
-    ofile['events'] = {"pfcand": ak.zip({"pt": rand_pt, "relpt": rand_relpt, "eta": rand_eta, "phi": rand_phi, "e": rand_e, "charge": rand_charge, "pdgid": rand_pdgid, "d0": rand_d0, "dz": rand_dz, "dr": rand_dr, "rele": rand_rele}),"parton":ak.zip({"pt":rand_parton_pt,"eta":rand_parton_eta,"phi":rand_parton_phi,"e":rand_parton_e}),"jet":ak.zip({"pt":rand_jet_pt,"eta":rand_jet_eta,"phi":rand_jet_phi,"e":rand_jet_e}),'jettype':rand_jettype}
-    #ofile['events'] = {"pfcand": ak.zip({"pt": rand_pt, "relpt": rand_relpt})}
+    ofile['events'] = {"pfcand": ak.zip({"pt": rand_pt, "relpt": rand_relpt, "eta": rand_eta, "phi": rand_phi, "e": rand_e, "charge": rand_charge, "pdgid": rand_pdgid, "d0": rand_d0, "dz": rand_dz, "dr": rand_dr, "rele": rand_rele}),"parton":ak.zip({"pt":rand_parton_pt,"eta":rand_parton_eta,"phi":rand_parton_phi,"e":rand_parton_e}),"jet":ak.zip({"pt":rand_jet_pt,"eta":rand_jet_eta,"phi":rand_jet_phi,"e":rand_jet_e,"msd":rand_jet_msd,"n2":rand_jet_n2}),'jettype':rand_jettype,'vartype':np.array(rand_vartype)}
+
+
 
 #has_all_variations = True
 
@@ -394,16 +436,39 @@ with uproot.recreate(sys.argv[1].replace('/flat','/skim').replace('nominal_flat.
 print(variations)
 
 for v in variations:
-    if v == "fsrRenHi2":
-        print("Here")
-        print(dump_arrays[v]['parton_pt'])
+    #if v == "fsrRenHi2":
+        #print("Here")
+        #print(dump_arrays[v]['parton_pt'])
 
+    assert (np.array(rand_parton_eta) == np.array(dump_nominal['parton_eta'])).all()
+
+
+    if path.exists(sys.argv[1].replace('/flat','/skim').replace('nominal_flat.root',"%s.root"%v)):
+        continue
     subprocess.call("rm -f %s"%sys.argv[1].replace('/flat','/skim').replace('nominal_flat.root',"%s.root"%v),shell=True)
     with uproot.recreate(sys.argv[1].replace('/flat','/skim').replace('nominal_flat.root',"%s.root"%v)) as ofile:
-        ofile['events'] = {"pfcand": ak.zip({"pt": dump_arrays[v]['pt'], "relpt": dump_arrays[v]['relpt'], "eta": dump_arrays[v]['eta'], "phi": dump_arrays[v]['phi'], "e": dump_arrays[v]['e'], "charge": dump_arrays[v]['charge'], "pdgid": dump_arrays[v]['pdgid'], "d0": dump_arrays[v]['d0'], "dz": dump_arrays[v]['dz'], "dr": dump_arrays[v]['dr'], "rele": dump_arrays[v]['rele']}),"parton":ak.zip({"pt":dump_arrays[v]['parton_pt'],"eta":dump_arrays[v]['parton_eta'],"phi":dump_arrays[v]['parton_phi'],"e":dump_arrays[v]['parton_e']}),"jet":ak.zip({"pt":dump_arrays[v]['jet_pt'],"eta":dump_arrays[v]['jet_eta'],"phi":dump_arrays[v]['jet_phi'],"e":dump_arrays[v]['jet_e']}),'jettype':dump_arrays[v]['jettype']}
+        ofile['events'] = {"pfcand": ak.zip({"pt": dump_arrays[v]['pt'], "relpt": dump_arrays[v]['relpt'], "eta": dump_arrays[v]['eta'], "phi": dump_arrays[v]['phi'], "e": dump_arrays[v]['e'], "charge": dump_arrays[v]['charge'], "pdgid": dump_arrays[v]['pdgid'], "d0": dump_arrays[v]['d0'], "dz": dump_arrays[v]['dz'], "dr": dump_arrays[v]['dr'], "rele": dump_arrays[v]['rele']}),"parton":ak.zip({"pt":dump_arrays[v]['parton_pt'],"eta":dump_arrays[v]['parton_eta'],"phi":dump_arrays[v]['parton_phi'],"e":dump_arrays[v]['parton_e']}),"jet":ak.zip({"pt":dump_arrays[v]['jet_pt'],"eta":dump_arrays[v]['jet_eta'],"phi":dump_arrays[v]['jet_phi'],"e":dump_arrays[v]['jet_e'],"msd":dump_arrays[v]['jet_msd'],"n2":dump_arrays[v]['jet_n2']}),'jettype':dump_arrays[v]['jettype']}
+
+#if path.exists(sys.argv[1].replace('/flat','/skim').replace('_flat.root','.root')):
+#    exit(1)
+
+we = 4
+
+#print(dump_nominal['eta'][we])
+'''
+print(dump_nominal['parton_pt'][we])
+print(dump_nominal['parton_eta'][we])
+print(dump_nominal['parton_phi'][we])
+print(dump_nominal['jet_eta'][we])
+print(dump_arrays['fsrRenLo']['parton_pt'][we])
+print(dump_arrays['fsrRenLo']['parton_eta'][we])
+print(dump_arrays['fsrRenLo']['parton_phi'][we])
+#print(dump_arrays['fsrRenLo']['eta'][we])
+print(dump_arrays['fsrRenLo']['jet_eta'][we])
+'''
+
+#print(dump_nominal['parton_pt'][2] == dump_arrays['fsrRenLo']['parton_pt'][2])
 
 subprocess.call("rm -f %s"%sys.argv[1].replace('/flat','/skim').replace('_flat.root','.root'),shell=True)
 with uproot.recreate(sys.argv[1].replace('/flat','/skim').replace('_flat.root','.root')) as ofile:
-    ofile['events'] = {"pfcand": ak.zip({"pt": dump_nominal['pt'], "relpt": dump_nominal['relpt'], "eta": dump_nominal['eta'], "phi": dump_nominal['phi'], "e": dump_nominal['e'], "charge": dump_nominal['charge'], "pdgid": dump_nominal['pdgid'], "d0": dump_nominal['d0'], "dz": dump_nominal['dz'], "dr": dump_nominal['dr'], "rele": dump_nominal['rele']}), "parton": ak.zip({'pt':dump_nominal['parton_pt'],'eta':dump_nominal['parton_eta'],'phi':dump_nominal['parton_phi'],'e':dump_nominal['parton_e']}),"jet": ak.zip({'pt':dump_nominal['jet_pt'],'eta':dump_nominal['jet_eta'],'phi':dump_nominal['jet_phi'],'e':dump_nominal['jet_e']}),'jettype':dump_nominal['jettype']}
-
-
+    ofile['events'] = {"pfcand": ak.zip({"pt": dump_nominal['pt'], "relpt": dump_nominal['relpt'], "eta": dump_nominal['eta'], "phi": dump_nominal['phi'], "e": dump_nominal['e'], "charge": dump_nominal['charge'], "pdgid": dump_nominal['pdgid'], "d0": dump_nominal['d0'], "dz": dump_nominal['dz'], "dr": dump_nominal['dr'], "rele": dump_nominal['rele']}), "parton": ak.zip({'pt':dump_nominal['parton_pt'],'eta':dump_nominal['parton_eta'],'phi':dump_nominal['parton_phi'],'e':dump_nominal['parton_e']}),"jet": ak.zip({'pt':dump_nominal['jet_pt'],'eta':dump_nominal['jet_eta'],'phi':dump_nominal['jet_phi'],'e':dump_nominal['jet_e'],'msd':dump_nominal['jet_msd'],'n2':dump_nominal['jet_n2']}),'jettype':dump_nominal['jettype']}

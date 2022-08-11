@@ -77,6 +77,14 @@ cp5up_dict = {
         'ColourReconnection:range':4.881,
 }
 
+seeddown_dict = {
+        'Tune:preferLHAPDF': 2,
+}
+
+seedup_dict = {
+        'Tune:preferLHAPDF': 2,
+}
+
 params_dict = {'Beams:eCM' : 13000.,'Beams:frameType' : 4,'Beams:LHEF':lhefile}
 params_dict.update(common_dict)
 params_dict.update(cp5_dict)
@@ -87,8 +95,16 @@ elif nickname == 'cp5up':
     params_dict.update(cp5up_dict)
 elif nickname == 'cp5down':
     params_dict.update(cp5down_dict)
+elif nickname == 'seedup':
+    params_dict.update(seedup_dict)
+elif nickname == 'seeddown':
+    params_dict.update(seeddown_dict)
 
-pythia = Pythia(params=params_dict,random_state=1)
+
+import random
+randomseed = random.randrange(1e8)
+
+pythia = Pythia(params=params_dict,random_state=randomseed)
 
 selection = ((STATUS == 1) & ~HAS_END_VERTEX &\
             (ABS_PDG_ID != 12) & (ABS_PDG_ID != 14) & (ABS_PDG_ID != 16))

@@ -1,0 +1,76 @@
+## ----------------------------
+## Read in Events from LHE File
+## ----------------------------
+## Create the Handler and Reader
+library LesHouches.so
+create ThePEG::LesHouchesFileReader /Herwig/EventHandlers/LHEReader
+create ThePEG::LesHouchesEventHandler /Herwig/EventHandlers/LHEHandler
+
+## Set LHE filename
+set /Herwig/EventHandlers/LHEReader:FileName XXXLHEFILEXXX
+
+## Setup LHE event handler and LHE reader
+set /Herwig/Generators/EventGenerator:EventHandler /Herwig/EventHandlers/LHEHandler
+insert /Herwig/EventHandlers/LHEHandler:LesHouchesReaders 0 /Herwig/EventHandlers/LHEReader
+set /Herwig/EventHandlers/LHEHandler:PartonExtractor /Herwig/Partons/PPExtractor
+set /Herwig/EventHandlers/LHEHandler:CascadeHandler /Herwig/Shower/ShowerHandler
+set /Herwig/EventHandlers/LHEHandler:HadronizationHandler /Herwig/Hadronization/ClusterHadHandler
+set /Herwig/EventHandlers/LHEHandler:DecayHandler /Herwig/Decays/DecayHandler
+set /Herwig/EventHandlers/LHEHandler:WeightNormalization CrossSection
+set /Herwig/EventHandlers/LHEHandler:WeightOption VarNegWeight
+set /Herwig/EventHandlers/LHEReader:IncludeSpin Yes
+set /Herwig/EventHandlers/LHEReader:MomentumTreatment RescaleEnergy
+set /Herwig/EventHandlers/LHEReader:AllowedToReOpen No
+
+## Parton shower settings
+set /Herwig/Shower/ShowerHandler:MaxPtIsMuF Yes
+set /Herwig/Shower/ShowerHandler:RestrictPhasespace Yes
+# treatment of wide angle radiation
+set /Herwig/Shower/PartnerFinder:PartnerMethod Random
+set /Herwig/Shower/PartnerFinder:ScaleChoice Partner
+
+## Don't use any cuts on LHE files
+create ThePEG::Cuts /Herwig/Cuts/NoCuts
+set /Herwig/EventHandlers/LHEReader:Cuts /Herwig/Cuts/NoCuts
+
+### lhef_mg5amc_commands
+## Commands specific to showering of events produced with MG5_aMC@NLO
+set /Herwig/Shower/KinematicsReconstructor:ReconstructionOption General
+set /Herwig/Shower/KinematicsReconstructor:InitialInitialBoostOption LongTransBoost
+set /Herwig/Shower/KinematicsReconstructor:InitialStateReconOption Rapidity
+# set /Herwig/Shower/KinematicsReconstructor:FinalStateReconOption Default
+set /Herwig/Shower/ShowerHandler:SpinCorrelations No
+
+
+### HW7 Settings
+cd /Herwig/Particles
+create /ThePEG/ParticleData hs
+setup hs 54  hs MHs WIDTH MAX_WIDTH 0 0 0 1 0
+create /ThePEG/ParticleData Zp
+setup Zp 55  Zp MZP WIDTH MAX_WIDTH 0 0 0 3 0
+create /ThePEG/ParticleData DM
+setup DM 1000022  DM MDM WIDTH MAX_WIDTH 0 0 0 2 1
+set /Herwig/Particles/DM:Stable Stable
+
+
+do /Herwig/Particles/Z0:SelectDecayModes Z0->mu-,mu+;
+do /Herwig/Particles/Z0:PrintDecayModes
+
+cd /Herwig/Generators
+insert EventGenerator:AnalysisHandlers 0 /Herwig/Analysis/HepMCFile
+
+#set EventGenerator:NumberOfEvents 1
+#set EventGenerator:RandomNumberGenerator:Seed 31122001
+set EventGenerator:DebugLevel 0
+set EventGenerator:EventHandler:StatLevel Full
+set EventGenerator:PrintEvent 100
+set EventGenerator:MaxErrors 10000
+
+
+set /Herwig/Analysis/HepMCFile:PrintEvent 10000
+set /Herwig/Analysis/HepMCFile:Format GenEvent
+set /Herwig/Analysis/HepMCFile:Units GeV_mm
+set /Herwig/Analysis/HepMCFile:Filename tmpprocess.hepmc
+
+saverun tmpprocess EventGenerator
+

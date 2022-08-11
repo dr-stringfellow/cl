@@ -1,0 +1,2 @@
+/eos/cms/store/user/bmaier/cl_nofixedseed/samples/lhes/higgs/events1485.lhe
+/eos/cms/store/user/bmaier/cl_nofixedseed/samples/lhes/higgs/events1600.lhe

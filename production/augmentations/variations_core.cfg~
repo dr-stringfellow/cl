@@ -1,0 +1,6 @@
+nominal dummy:dummy=-99
+seedup json:json=-99
+isrRenHi SpaceShower:renormMultFac=0.707
+isrRenLo SpaceShower:renormMultFac=1.414
+cp5up json:json=-99
+cp5down json:json=-99
